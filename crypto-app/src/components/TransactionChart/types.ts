@@ -1,11 +1,20 @@
-export interface TransactionResData {
-  id: string;
-  isBestMatch: boolean;
-  isBuyerMaker: boolean;
+export interface AggregateTradeSocketData {
+  e: string; // Event type
+  E: number; // Event time
+  s: string; // Symbol
+  a: number; // Aggregate trade ID
+  p: string; // Price
+  q: string; // Quantity
+  f: number; // First trade ID
+  l: number; // Last trade ID
+  T: number; // Trade time
+  m: boolean; // Is the buyer the market maker?
+}
+
+export interface TransactionData {
+  timestamp: number;
+  volume: string;
   price: string;
-  qty: string;
-  quoteQty: string;
-  time: number;
 }
 
 export interface OptionParams {

@@ -1,26 +1,26 @@
-import { useRef, useState } from "react";
-import { useErrorBoundary } from "react-error-boundary";
-import { getData } from "../../heleprs/getData";
-import { TransactionResData } from "./types";
+import { useState } from "react";
+import { AggregateTradeSocketData, TransactionData } from "./types";
 
 export function useTranscationChart() {
-  const intervalRef = useRef<number | null>(null);
-  const [chartData, setChartData] = useState<TransactionResData[]>([]);
-  const { showBoundary } = useErrorBoundary();
-  const [loading, setLoading] = useState(false);
+  const [transactions, setTranscations] = useState<TransactionData[]>([]);
 
-  const fetchData = (initialLoad?: boolean) => {
-    if (initialLoad) {
-      setLoading(true);
-    }
-    getData()
-      .then((resData) => {
-        if (initialLoad) {
-          setLoading(false);
-        }
-        setChartData(resData);
-      })
-      .catch((error) => showBoundary(error));
+  const handleData = (data: AggregateTradeSocketData) => {
+    const { E, q, p } = data;
+    setTranscations((prevTransactions: TransactionData[]) => {
+      const newTransaction: TransactionData = {
+        timestamp: E,
+        volume: q,
+        price: p,
+      };
+
+      const updatedTransactions = [...prevTransactions, newTransaction];
+
+      if (updatedTransactions.length > 100) {
+        return updatedTransactions.slice(-100);
+      }
+      return updatedTransactions;
+    });
   };
-  return { fetchData, intervalRef, chartData, loading };
+
+  return { transactions, handleData };
 }

@@ -1,35 +1,38 @@
-import { useTranscationChart } from "./useTransactionChart";
 import { useEffect } from "react";
-import { getOption } from "./option";
-import { TransactionResData } from "./types";
 import ReactECharts from "echarts-for-react";
+import { useSocket } from "../../helpers/useSocket";
+import { getOption } from "./option";
+import { AggregateTradeSocketData, TransactionData } from "./types";
 import "./styles.css";
 import { Loader } from "./loader";
+import { useTranscationChart } from "./useTransactionChart";
+import { getUrl } from "../../helpers/getUrl";
 
 export const TransactionChart = () => {
-  const { fetchData, intervalRef, chartData, loading } = useTranscationChart();
-
-  useEffect(() => {
-    fetchData(true);
-    intervalRef.current = setInterval(fetchData, 5000);
-    return () => {
-      if (intervalRef.current !== null) {
-        clearInterval(intervalRef.current);
-      }
-    };
-  }, []);
-
-  const prices = chartData.map((data: TransactionResData) => data.price);
-  const volumes = chartData.map((data: TransactionResData) => data.qty);
-  const timestamps = chartData.map((data: TransactionResData) =>
-    new Date(data.time).toLocaleTimeString()
+  const url = getUrl({ from: "btc", to: "usdt", endpoint: "aggTrade" });
+  const { transactions, handleData } = useTranscationChart();
+  const { connectWebSocket, isConnected } = useSocket<AggregateTradeSocketData>(
+    {
+      url,
+      getData: (data: AggregateTradeSocketData) => handleData(data),
+    }
   );
 
+  useEffect(() => {
+    connectWebSocket();
+  }, []);
+
+  const prices = transactions.map((data: TransactionData) => data.price);
+  const volumes = transactions.map((data: TransactionData) => data.volume);
+  const timestamps = transactions.map((data: TransactionData) =>
+    new Date(data.timestamp).toLocaleTimeString()
+  );
   const option = getOption({ prices, volumes, timestamps });
+  const isLoading = !isConnected || transactions.length < 10;
 
   return (
     <div>
-      {loading ? (
+      {isLoading ? (
         <Loader />
       ) : (
         <ReactECharts option={option} className="chart" />
