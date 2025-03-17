@@ -11,15 +11,17 @@ import { getUrl } from "../../helpers/getUrl";
 export const TransactionChart = () => {
   const url = getUrl({ from: "btc", to: "usdt", endpoint: "aggTrade" });
   const { transactions, handleData } = useTranscationChart();
-  const { connectWebSocket, isConnected } = useSocket<AggregateTradeSocketData>(
-    {
+  const { connectWebSocket, isConnected, disconnectWebSocket } =
+    useSocket<AggregateTradeSocketData>({
       url,
       getData: (data: AggregateTradeSocketData) => handleData(data),
-    }
-  );
+    });
 
   useEffect(() => {
     connectWebSocket();
+    return () => {
+      disconnectWebSocket();
+    };
   }, []);
 
   const prices = transactions.map((data: TransactionData) => data.price);

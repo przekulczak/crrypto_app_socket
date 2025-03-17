@@ -11,7 +11,6 @@ export function useSocket<T>({ url, getData }: UseSocketParams<T>) {
     const socket = new WebSocket(url);
 
     socket.onopen = () => {
-      console.log("opened");
       setConnected(true);
     };
 
@@ -32,5 +31,13 @@ export function useSocket<T>({ url, getData }: UseSocketParams<T>) {
     socketRef.current = socket;
   };
 
-  return { connectWebSocket, isConnected };
+  const disconnectWebSocket = () => {
+    if (socketRef.current && isConnected) {
+      socketRef.current.close();
+      socketRef.current = null;
+      setConnected(false);
+    }
+  };
+
+  return { connectWebSocket, disconnectWebSocket, isConnected };
 }
